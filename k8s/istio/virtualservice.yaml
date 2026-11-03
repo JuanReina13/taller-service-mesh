@@ -1,0 +1,36 @@
+# Tráfico que entra desde afuera por my-gateway (puerto 8080 con port-forward).
+# Un solo VirtualService con las 3 rutas, para que no compitan varios con hosts "*".
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: app-routes
+spec:
+  gateways:
+    - my-gateway
+  hosts:
+    - "*"
+  http:
+    - match:
+        - uri:
+            prefix: /customers
+      route:
+        - destination:
+            host: customer-service
+            port:
+              number: 80
+    - match:
+        - uri:
+            prefix: /orders
+      route:
+        - destination:
+            host: order-service
+            port:
+              number: 80
+    - match:
+        - uri:
+            prefix: /logins
+      route:
+        - destination:
+            host: login-service
+            port:
+              number: 80

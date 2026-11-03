@@ -1,0 +1,37 @@
+# Reglas para el tráfico INTERNO entre microservicios (order -> customer -> login).
+# No tienen "gateways", así que aplican a las llamadas dentro de la malla.
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: customer-service-internal
+spec:
+  hosts:
+    - customer-service
+  http:
+    - route:
+        - destination:
+            host: customer-service
+            subset: v1
+      timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,connect-failure,reset
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: login-service-internal
+spec:
+  hosts:
+    - login-service
+  http:
+    - route:
+        - destination:
+            host: login-service
+            subset: v1
+      timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: 5xx,connect-failure,reset

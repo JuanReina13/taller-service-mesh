@@ -1,0 +1,10 @@
+# Seguridad zero-trust: los pods con sidecar solo aceptan tráfico cifrado con mTLS.
+# MySQL y Kafka no tienen sidecar, así que no se ven afectados.
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT
