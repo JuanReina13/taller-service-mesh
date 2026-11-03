@@ -1,0 +1,28 @@
+# DEMO (no lo aplica deploy.ps1): simula que customer-service falla, sin tocar su código.
+# Reemplaza temporalmente customer-service-internal (de k8s/istio/mesh-routing.yaml):
+#   - 50% de las llamadas internas reciben 503
+#   - las demás tardan 3 segundos más
+# Aplicar:   kubectl apply -f k8s/istio-demo/fault-injection.yaml
+# Revertir:  kubectl apply -f k8s/istio/mesh-routing.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: customer-service-internal
+spec:
+  hosts:
+    - customer-service
+  http:
+    - fault:
+        abort:
+          httpStatus: 503
+          percentage:
+            value: 50
+        delay:
+          fixedDelay: 3s
+          percentage:
+            value: 100
+      route:
+        - destination:
+            host: customer-service
+            subset: v1
+      timeout: 5s

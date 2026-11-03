@@ -130,6 +130,21 @@ En **Traffic Graph**, con el namespace `default`, se ve order → customer → l
 | `destination-rules.yaml` | mTLS (`ISTIO_MUTUAL`), balanceo de carga y circuit breaker (`outlierDetection`) |
 | `mesh-routing.yaml` | Timeouts y reintentos en las llamadas internas a customer-service y login-service |
 | `peer-authentication.yaml` | mTLS `STRICT` en el namespace `default` |
+| `authorization-policies.yaml` | Quién puede llamar a quién: gateway → los 3 servicios, order → customer, customer → login. Las demás llamadas reciben 403 |
+
+### Demo de inyección de fallas (`k8s/istio-demo`)
+
+`fault-injection.yaml` hace que el 50 % de las llamadas internas a customer-service respondan 503 y que todas tarden 3 s más. Después de 3 errores seguidos de order-service, el circuit breaker (`outlierDetection`) lo saca de rotación por 30 s y el gateway responde `no healthy upstream`.
+
+```bash
+kubectl apply -f k8s/istio-demo/fault-injection.yaml
+```
+
+Para revertir:
+
+```bash
+kubectl apply -f k8s/istio/mesh-routing.yaml
+```
 
 ## Correr en local (sin Kubernetes)
 

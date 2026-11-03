@@ -1,0 +1,52 @@
+# Quién puede llamar a quién dentro de la malla (zero-trust).
+# La identidad de cada servicio es su ServiceAccount, verificada con el certificado mTLS.
+#   gateway  -> order, customer, login (rutas externas)
+#   order    -> customer
+#   customer -> login
+# Cualquier otra llamada recibe 403 "RBAC: access denied".
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: order-service
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: customer-service
+spec:
+  selector:
+    matchLabels:
+      app: customer-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+              - cluster.local/ns/default/sa/order-service
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: login-service
+spec:
+  selector:
+    matchLabels:
+      app: login-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account
+              - cluster.local/ns/default/sa/customer-service
